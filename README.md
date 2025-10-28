@@ -1,4 +1,4 @@
-# Electron + React + Tailwind Boilerplate
+# Bun + Electron + React + Tailwind Boilerplate
 A modern boilerplate to build cross-platform, high-performance desktop applications using Electron, React, Tailwind CSS, and other cutting-edge web development tools.
 
 ## Features
@@ -26,40 +26,40 @@ git clone https://github.com/Molizanee/electron-react-tailwind.git && cd electro
 
 Once inside the project directory, install all required dependencies:
 ```bash
-npm install
+bun i
 ```
 
 3. Run the Development Server
 
 Start the project in development mode with hot-reloading enabled:
 ```bash
-npm run dev
+bun dev
 ```
 
 4. Run Tests
 
 Run all tests with Vitest:
 ```bash
-npm run test
+bun run test
 ```
 
 To open the Vitest UI for a visual overview of your tests:
 ```bash
-npm run test:ui
+bun run test:ui
 ```
 
 5. Build the Project
 
 To build the project for production:
 ```bash
-npm run build
+bun run build
 ```
 
 This will bundle your application and prepare it for distribution across different platforms.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
 
 ## Contributions
 

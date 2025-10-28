@@ -1,11 +1,11 @@
+import BiomeLogo from "@/assets/biome-logo.svg";
 import ElectronLogo from "@/assets/electron-logo.svg";
 import ReactLogo from "@/assets/react-logo.svg";
-import ViteLogo from "@/assets/vite-logo.svg";
-import VitestLogo from "@/assets/vitest-logo.svg";
-import TailwindCSSLogo from "@/assets/tailwind-css-logo.svg";
-import BiomeLogo from "@/assets/biome-logo.svg";
 import ReactTestingLibraryLogo from "@/assets/react-testing-library-logo.png";
 import ShadcnLogo from "@/assets/shadcn-logo.png";
+import TailwindCSSLogo from "@/assets/tailwind-css-logo.svg";
+import ViteLogo from "@/assets/vite-logo.svg";
+import VitestLogo from "@/assets/vitest-logo.svg";
 import { Button } from "@/components/button";
 import { useState } from "react";
 export default function App() {
