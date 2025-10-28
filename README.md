@@ -48,14 +48,47 @@ To open the Vitest UI for a visual overview of your tests:
 bun run test:ui
 ```
 
-5. Build the Project
+5. Build the Web Application
 
-To build the project for production:
+To build the web version for production:
 ```bash
-bun run build
+bun run build:web
 ```
 
-This will bundle your application and prepare it for distribution across different platforms.
+6. Build the Desktop Application
+
+To build the desktop application for distribution:
+```bash
+bun run build:desktop
+```
+
+7. Start the Web Application
+
+To preview the built web application:
+```bash
+bun run start:web
+```
+
+8. Start the Desktop Application
+
+To run the built desktop application:
+```bash
+bun run start:desktop
+```
+
+9. Lint the Code
+
+To check and fix code style issues:
+```bash
+bun run lint
+```
+
+10. Run Tests with Coverage
+
+To run tests and generate coverage reports:
+```bash
+bun run coverage
+```
 
 ## License
 
