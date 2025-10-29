@@ -1,7 +1,7 @@
 # Bun + Electron + React + Tailwind Boilerplate
 A modern boilerplate to build cross-platform, high-performance desktop applications using Electron, React, Tailwind CSS, and other cutting-edge web development tools.
 
-![AppHome](https://raw.githubusercontent.com/Molizanee/electron-react-tailwind/main/assets/app-home.png)
+![AppHome](https://8upload.com//image/6902000b4cc7e/Build_modern_apps.png)
 
 ## Features
 
