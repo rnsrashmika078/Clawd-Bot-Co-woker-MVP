@@ -3,9 +3,9 @@ import { Status, StreamMessageStatus } from "../types/chat.types";
 export function isCurrentMessage(
   status?: StreamMessageStatus,
   msgId?: string,
-  checkState?: Status,
+  isLoading?: boolean,
 ) {
-  if (status?.messageId === msgId && status?.messageStatus === checkState) {
+  if (status?.messageId === msgId && isLoading) {
     return true;
   }
   return false;

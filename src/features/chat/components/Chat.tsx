@@ -133,7 +133,7 @@ const Chat = memo(() => {
   return (
     <div className="flex w-full h-full scrollbar p-2">
       <Button
-        className="fixed right-0"
+        className="fixed z-100 right-0"
         onClick={async () => {
           await deleteChats();
         }}
@@ -162,7 +162,11 @@ const Chat = memo(() => {
         <motion.div
           className={`${convPreviewStyle} flex relative h-full flex-col ${flexing} `}
         >
-          <Conversation messages={allMessages} status={status} />
+          <Conversation
+            messages={allMessages}
+            status={status}
+            isLoading={stream.isLoading}
+          />
           {/* <DisplayError error={error} /> */}
           <ErrorCard error={error!} />
           <InputArea

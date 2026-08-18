@@ -6,7 +6,7 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useRef, useState } from "react";
 import { IoMdSend } from "react-icons/io";
 import { IoIosAttach } from "react-icons/io";
 import { useSelector } from "react-redux";
@@ -17,13 +17,14 @@ import Loader from "@/shared/components/Loader";
 import ImageSkeleton from "./Skeletons";
 import Preview from "@/shared/components/ImagePreview";
 import { StoreState } from "@/redux/store";
+import { LocalUploadImage } from "@/features/chat/services/localFileUpload";
 
 interface InputAreaProps {
   onSubmit: (data: FormField) => void;
   file: File | null;
   status: Status;
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
-  isLoading:boolean,
+  isLoading: boolean;
   // stream function
   stop: () => void;
 }
@@ -38,7 +39,6 @@ export const InputArea = ({
   const user = useSelector((store: StoreState) => store.auth.user);
   const [loading, setLoading] = useState<boolean>(false);
 
-
   const inputRef = useRef<HTMLInputElement | null>(null);
   const handleFileUpload = useCallback(() => {
     if (!inputRef.current) return;
@@ -49,14 +49,15 @@ export const InputArea = ({
     const rawFile = e.target.files?.[0];
     if (!rawFile) return;
     setLoading(true);
-    const imageData = await uploadImage(rawFile, user?.id);
+    const imageData = await LocalUploadImage(rawFile);
+    console.log("IMAGE DATA", ImageData);
+
+    // const imageData = await uploadImage(rawFile, user?.id);
     setLoading(false);
     setFile({ url: imageData?.secure_url, format: imageData?.format });
   };
 
-
-
-  const [input,setInput] = useState<string>("")
+  const [input, setInput] = useState<string>("");
 
   return (
     <div className="sticky  bottom-0 px-5">
@@ -95,9 +96,13 @@ export const InputArea = ({
                 variant="default"
                 size="sm"
                 className="ml-auto"
-                onClick={()=>onSubmit({input})}
+                onClick={() => onSubmit({ input })}
               >
-                {status === "loading" ? <MdStop /> : <IoMdSend />}
+                {status === "loading" ? (
+                  <MdStop onClick={stop} />
+                ) : (
+                  <IoMdSend />
+                )}
               </InputGroupButton>
             </InputGroupAddon>
             <InputGroupAddon align="block-start">

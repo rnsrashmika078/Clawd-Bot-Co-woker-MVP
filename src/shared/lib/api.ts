@@ -1,6 +1,6 @@
 export const deleteChats = async () => {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/thread`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/thread`, {
       method: "DELETE",
     });
     const result = await res.json();

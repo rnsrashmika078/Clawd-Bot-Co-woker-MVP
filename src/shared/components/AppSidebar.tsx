@@ -58,11 +58,11 @@ const AppSidebar = memo(() => {
     "18",
   ];
   return (
-    <div className="fixed top-0 left-0 z-100 text-xs">
-      <SidebarProvider>
+    <div className="fixed top-0 left-0 z-100 text-xs ">
+      <SidebarProvider >
         <Sidebar>
           <SidebarContent className="text-xs">
-            <SidebarHeader className="">
+            <SidebarHeader className="sticky top-0">
               <Logo />
               {items.map((i) => {
                 const Icon = i.icon;

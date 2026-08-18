@@ -1,11 +1,9 @@
 import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoMdArrowDropdown } from "react-icons/io";
-import { PiSpinner } from "react-icons/pi";
 import { StreamMessageStatus } from "@/features/chat/types/chat.types";
 import { Message } from "@/shared/components/Message";
 import Markdown from "@/shared/components/Markdown";
-import { isCurrentMessage } from "@/features/chat/helper/render";
 interface AccordionProps {
   messageId: string;
   status: StreamMessageStatus;
@@ -30,11 +28,11 @@ const Accordion = memo(
         <div className="border rounded-2xl bg-accent text-xs w-full ">
           <div className="px-2 py-1 flex w-full font-bold border-b rounded-2xl text-md italic justify-between items-center">
             <div className="flex items-center gap-2 justify-center">
-              {isCurrentMessage(status, messageId, "loading") && (
+              {/* {isCurrentMessage(status, messageId, "loading") && (
                 <PiSpinner className="animate-spin" size={20} />
-              )}
+              )} */}
               <span className="">
-                {header[status?.messageStatus ?? "finished"]}
+                {header["idle"]}
               </span>
             </div>
             <IoMdArrowDropdown size={25} />
