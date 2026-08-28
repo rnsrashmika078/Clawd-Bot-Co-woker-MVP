@@ -65,8 +65,11 @@ export function extractURLContent(content: unknown): string {
         if (typeof item === "string") {
           return item;
         }
-        if (item && typeof item === "object" && "image_url" in item) {
-          return String(item.image_url.url);
+        // if (item && typeof item === "object" && "image_url" in item) {
+        //   return String(item.image_url.url);
+        // }
+        if (item && typeof item === "object" && "raw" in item) {
+          return String(item.raw);
         }
       })
       .join("");

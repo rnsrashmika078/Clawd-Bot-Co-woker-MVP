@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoMdArrowDropdown } from "react-icons/io";
@@ -5,13 +6,13 @@ import { StreamMessageStatus } from "@/features/chat/types/chat.types";
 import { Message } from "@/shared/components/Message";
 import Markdown from "@/shared/components/Markdown";
 interface AccordionProps {
-  messageId: string;
-  status: StreamMessageStatus;
+  messageId: string | undefined;
+  status: StreamMessageStatus | undefined;
   reasoning_content?: string;
 }
 const Accordion = memo(
   ({ messageId, reasoning_content, status }: AccordionProps) => {
-    const [hidden, setHidden] = useState<boolean>(true);
+    const [hidden, setHidden] = useState<boolean>(false);
 
     const header = {
       finished: "Thought Process",
@@ -25,15 +26,14 @@ const Accordion = memo(
         {/* <span className="fixed bg-red-500 p-5">
           {messageId ?? status?.messageId}
         </span> */}
+
         <div className="border rounded-2xl bg-accent text-xs w-full ">
           <div className="px-2 py-1 flex w-full font-bold border-b rounded-2xl text-md italic justify-between items-center">
             <div className="flex items-center gap-2 justify-center">
               {/* {isCurrentMessage(status, messageId, "loading") && (
                 <PiSpinner className="animate-spin" size={20} />
               )} */}
-              <span className="">
-                {header["idle"]}
-              </span>
+              <span className="">{header["idle"]}</span>
             </div>
             <IoMdArrowDropdown size={25} />
           </div>
@@ -43,7 +43,7 @@ const Accordion = memo(
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="p-2"
+                className="p-2 overflow-auto custom-scrollbar"
               >
                 {status?.messageStatus === "finished" ? (
                   <span>{reasoning_content}</span>

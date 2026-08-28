@@ -1,8 +1,8 @@
 function ErrorCard({ name, error }: { name?: string; error?: string }) {
   if (!error) return;
   return (
-    <div className="rounded-lg border border-red-300 bg-red-50 p-4">
-      {/* <h3 className="font-semibold text-red-700">{error}</h3> */}
+    <div className="sticky bottom-24 left-0 -translate-y-1/2  block rounded-lg border text-black border-red-500  p-4">
+      <span className="font-semibold text-red-700">{error}</span>
       {/* <p className="text-sm text-red-600">{error}</p> */}
     </div>
   );

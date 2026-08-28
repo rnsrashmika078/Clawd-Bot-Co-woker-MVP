@@ -17,7 +17,6 @@ import Loader from "@/shared/components/Loader";
 import ImageSkeleton from "./Skeletons";
 import Preview from "@/shared/components/ImagePreview";
 import { StoreState } from "@/redux/store";
-import { LocalUploadImage } from "@/features/chat/services/localFileUpload";
 
 interface InputAreaProps {
   onSubmit: (data: FormField) => void;
@@ -25,12 +24,13 @@ interface InputAreaProps {
   status: Status;
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
   isLoading: boolean;
-  // stream function
+  tokenCount: number;
   stop: () => void;
 }
 export const InputArea = ({
   file,
   onSubmit,
+  tokenCount,
   status,
   setFile,
   isLoading,
@@ -49,10 +49,7 @@ export const InputArea = ({
     const rawFile = e.target.files?.[0];
     if (!rawFile) return;
     setLoading(true);
-    const imageData = await LocalUploadImage(rawFile);
-    console.log("IMAGE DATA", ImageData);
-
-    // const imageData = await uploadImage(rawFile, user?.id);
+    const imageData = await uploadImage(rawFile, 1);
     setLoading(false);
     setFile({ url: imageData?.secure_url, format: imageData?.format });
   };
@@ -69,6 +66,7 @@ export const InputArea = ({
               onChange={(e) => setInput(e.target.value)}
               id="block-end-textarea"
               disabled={false}
+              value={input}
               className="min-h-10 h-10 max-h-42 "
               placeholder="Write a comment..."
             />
@@ -76,13 +74,20 @@ export const InputArea = ({
               {/* Attachment */}
               <InputGroupButton
                 variant="default"
-                size="sm"
+                size="xs"
                 className=""
                 type="button"
                 disabled={false}
                 onClick={handleFileUpload}
               >
                 <IoIosAttach />
+              </InputGroupButton>
+              <InputGroupButton
+                variant="destructive"
+                size="xs"
+                className="text-xs"
+              >
+                {tokenCount}
               </InputGroupButton>
               <input
                 type="file"
@@ -91,19 +96,30 @@ export const InputArea = ({
                 ref={inputRef}
               />
               {/* Send */}
-              <InputGroupButton
-                disabled={!input}
-                variant="default"
-                size="sm"
-                className="ml-auto"
-                onClick={() => onSubmit({ input })}
-              >
-                {status === "loading" ? (
-                  <MdStop onClick={stop} />
-                ) : (
+              {isLoading ? (
+                <InputGroupButton
+                  disabled={!input}
+                  variant="default"
+                  size="xs"
+                  className="ml-auto "
+                  onClick={stop}
+                >
+                  <MdStop />
+                </InputGroupButton>
+              ) : (
+                <InputGroupButton
+                  disabled={!input}
+                  variant="default"
+                  size="xs"
+                  className="ml-auto "
+                  onClick={() => {
+                    onSubmit({ input });
+                    setInput("");
+                  }}
+                >
                   <IoMdSend />
-                )}
-              </InputGroupButton>
+                </InputGroupButton>
+              )}
             </InputGroupAddon>
             <InputGroupAddon align="block-start">
               {loading ? <ImageSkeleton /> : <Preview file={file} />}

@@ -1,3 +1,8 @@
+
+
+const Name = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME!;
+const Preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
 export const uploadImage = async (
   file: File | null,
   userId: number | undefined,
@@ -6,14 +11,11 @@ export const uploadImage = async (
   const formData = new FormData();
 
   formData.append("file", file);
-  formData.append(
-    "upload_preset",
-    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!,
-  );
+  formData.append("upload_preset", Preset!);
   formData.append("folder", `flowsome/lib/${userId ?? 1}`);
 
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${Name!}/image/upload`,
     {
       method: "POST",
       body: formData,
@@ -25,6 +27,5 @@ export const uploadImage = async (
   }
 
   const data = await response.json();
-  console.log("Upload Image Data", data);
   return { secure_url: data.secure_url, format: data.format };
 };

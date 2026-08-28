@@ -1,5 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
-import { lazy, memo, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   FetchStreamTransport,
   useStream,
@@ -12,9 +21,11 @@ import { Button } from "@/components/ui/button";
 import { Conversation } from "./Conversation";
 import { useAppContext } from "@/shared/context/AppContext";
 import {
+  CustomWriterMessage,
   ExtendedMessage,
   File,
   FormField,
+  ResponseMeta,
   StreamMessageStatus,
 } from "@/features/chat/types/chat.types";
 import { deleteChats } from "@/shared/lib/api";
@@ -22,11 +33,12 @@ import ErrorCard from "@/shared/components/cards/ErrorCard";
 import { InputArea } from "@/shared/components/InputArea";
 import { loadThreadHistory } from "../services/chatHistory";
 import { v4 as uuid } from "uuid";
-
 const Preview = lazy(() => import("@/features/preview/components/Preview"));
 
 const Chat = memo(() => {
   const [preview, setPreview] = useState<boolean>(false);
+
+  const currentMessageRef = useRef<string | null>("");
   const [currentMessageId, setCurrentMessageId] = useState<string>("");
   const [status, setStatus] = useState<StreamMessageStatus>(null);
   const [messages, setMessages] = useState<LCMessage[]>([]);
@@ -40,24 +52,35 @@ const Chat = memo(() => {
     });
   }, []);
 
+  const [writerMessage, setWriterMessage] =
+    useState<CustomWriterMessage | null>(null);
+
+  const handleCustomWriterMessage = (data: any) => {
+    setWriterMessage({
+      message: data.message,
+      messageId: currentMessageRef.current!,
+    });
+  };
+
   const stream = useStream({
     transport,
-    onMetadataEvent(data) {
-      console.log(data);
-    },
+    onMetadataEvent(data) {},
+    onCustomEvent: handleCustomWriterMessage,
     threadId: thread,
-    onError: (err: unknown) => setError(err as string),
+    onError: (err: unknown) => setError(JSON.stringify(err)),
   });
 
   const onSubmit = useCallback(
     async (data: FormField) => {
       try {
         const id = uuid();
+        currentMessageRef.current = id;
         setCurrentMessageId(id);
         setStatus({
           messageId: id,
           messageStatus: "loading",
         });
+
         await stream.submit({
           messages: [
             { type: "human", content: data.input },
@@ -116,10 +139,16 @@ const Chat = memo(() => {
         ? { ...m, customId: currentMessageId }
         : m,
     );
-    // const msg = [...newStreamMessages, { customId: currentMessageId }];
     return [...messages, ...modifiedNewStreamMessages] as ExtendedMessage[];
   }, [currentMessageId, messages, stream.messages]);
 
+  // const allMessages = useMemo(() => {
+  //   // const lastMessage = stream.messages.at(-1) as LCMessage;
+  //   return stream.messages;
+  // }, [stream.messages]);
+
+  console.log("all message", allMessages);
+  console.log("Stream all message", stream.messages.length);
   // tailwind dynamic styles
   const convPreviewStyle = preview
     ? "flex-1 hidden md:block w-1/2 m-auto"
@@ -130,28 +159,48 @@ const Chat = memo(() => {
       ? "justify-between"
       : "justify-center";
 
+  const [tokenCount, setTokenCount] = useState(0);
+
+  useEffect(() => {
+    if (!allMessages) return;
+    const lastMessage = allMessages[allMessages.length - 1];
+
+    if ((lastMessage?.response_metadata as ResponseMeta)?.done) {
+      setTokenCount(
+        allMessages?.reduce(
+          (acc, item: ExtendedMessage) =>
+            (acc + (item?.usage_metadata?.total_tokens ?? 0)) as number,
+          0,
+        ),
+      );
+    }
+  }, [allMessages]);
   return (
     <div className="flex w-full h-full scrollbar p-2">
-      <Button
-        className="fixed z-100 right-0"
-        onClick={async () => {
-          await deleteChats();
-        }}
-      >
-        DELETE
-      </Button>
       <div className="fixed top-0 left-1/2 -translate-x-1/2 p-2 z-50">
         <span className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></span>
-        <Button
-          className={`md:hidden block`}
-          onClick={() => {
-            setPreview((prev) => !prev);
-          }}
-        >
-          <MdSwitchRight
-            className={`transition-all duration-300 ${preview ? "rotate-180" : "rotate-0"}`}
-          />
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size={"sm"}
+            // className={`md:hidden block`}
+            onClick={() => {
+              setPreview((prev) => !prev);
+            }}
+          >
+            <MdSwitchRight
+              className={`transition-all duration-300 ${preview ? "rotate-180" : "rotate-0"}`}
+            />
+          </Button>
+          <Button
+            size={"sm"}
+            // className={`md:hidden block`}
+            onClick={async () => {
+              await deleteChats();
+            }}
+          >
+            DELETE
+          </Button>
+        </div>
       </div>
       {preview && (
         <div className="flex-1 md:flex-2">
@@ -163,15 +212,19 @@ const Chat = memo(() => {
           className={`${convPreviewStyle} flex relative h-full flex-col ${flexing} `}
         >
           <Conversation
+            writerMessage={writerMessage}
             messages={allMessages}
             status={status}
             isLoading={stream.isLoading}
           />
-          {/* <DisplayError error={error} /> */}
           <ErrorCard error={error!} />
           <InputArea
+            tokenCount={tokenCount}
             isLoading={stream.isLoading}
-            onSubmit={onSubmit}
+            onSubmit={(data) => {
+              onSubmit(data);
+              setError(null);
+            }}
             setFile={setFile}
             file={file}
             stop={stream.stop}

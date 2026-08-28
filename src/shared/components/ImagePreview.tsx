@@ -1,4 +1,4 @@
-import Pdf from "@/public/images/pdf.png";
+/* eslint-disable @next/next/no-img-element */
 import { memo } from "react";
 import { fileFormat } from "@/features/chat/services/fileformat";
 import { File } from "@/features/chat/types/chat.types";
@@ -11,6 +11,7 @@ const ImagePreview = memo(({ file }: { file: File | null }) => {
       <img
         src={"Pdf"}
         width={96}
+        loading="eager"
         height={96}
         className="w-24 h-24 rounded-xl"
         alt="attach_image"
@@ -19,7 +20,7 @@ const ImagePreview = memo(({ file }: { file: File | null }) => {
 
   return (
     <img
-      src={"Pdf"}
+      src={file.url}
       width={96}
       height={96}
       className="w-24 h-24 rounded-xl"

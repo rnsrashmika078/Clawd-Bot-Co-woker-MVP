@@ -75,7 +75,6 @@ interface SettingsModalProps {
  */
 // Mini model wrapper ... this is the main component for the mini modal
 export const SettingsModalWrapper = ({ children }: SettingsModalProps) => {
-  console.log("WRAPPER");
   return <SettingsModalProvider>{children}</SettingsModalProvider>;
 };
 SettingsModalWrapper.displayName = "SettingsModalWrapper";

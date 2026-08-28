@@ -6,17 +6,39 @@ export type ChatMessage = {
   type?: string;
   url?: string;
 };
+
+export type CustomWriterMessage = {
+  message: string;
+  messageId: string;
+};
 export type File = {
   url: string;
-  format: "image" | "file";
+  format?: "image" | "file";
 };
 export type FormField = {
   input: string;
 };
-
-export type ResponseMeta = {
+export type UsageMetadata = {
+  input_token_details: object;
+  input_tokens: number;
+  output_token_details: object;
+  output_tokens: number;
+  total_tokens: number;
+};
+export type ResponseMeta<T = unknown> = {
   model_provider: string;
   model_name: string;
+  model: string;
+  done: boolean;
+  done_reason: T;
+  created_at: Date;
+  eval_count: number;
+  eval_duration: number;
+  load_duration: number;
+  logprobs: T;
+  total_duration: number;
+  prompt_eval_duration: number;
+  prompt_eval_count: number;
 };
 export type RegisterType = UseFormRegister<FormField>;
 
