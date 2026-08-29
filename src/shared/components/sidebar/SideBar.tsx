@@ -56,8 +56,7 @@ const Sidebar = () => {
   ];
   return (
     <SideBarLayout>
-      <SidebarToggler />
-      <SideBarBody className="bg-accent">
+      <SideBarBody className="bg-accent text-xs">
         {/* <SideBarContent></SideBarContent> */}
         <SideBarHeader>
           <Logo />
@@ -75,7 +74,7 @@ const Sidebar = () => {
               );
             })}
           </SideBarGroup>
-          <SideBarGroup className="h-[475px] overflow-y-auto custom-scrollbar-y p-2">
+          <SideBarGroup className="h-[calc(100%-5rem)] overflow-y-auto custom-scrollbar-y p-2">
             {threads.map((t) => (
               <div
                 onClick={() => {
@@ -99,6 +98,7 @@ const Sidebar = () => {
           </SettingsContextProvider>
         </SideBarFooter>
       </SideBarBody>
+      <SidebarToggler />
     </SideBarLayout>
   );
 };

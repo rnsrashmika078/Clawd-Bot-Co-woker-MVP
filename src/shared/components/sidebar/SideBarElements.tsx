@@ -55,27 +55,21 @@ export function SideBarBody({
   const { toggle, setToggle } = useSideBar();
   const focusRef = useRef<HTMLDivElement | null>(null);
 
-  // useEffect(() => {
-  //   function handleMouseEvent(e: MouseEvent) {
-  //     if (focusRef.current?.contains(e.target as Node)) {
-  //       setToggle(false);
-  //       return;
-  //     } else {
-  //       if (!toggle) {
-  //         setToggle(true);
-  //         return;
-  //       }
-  //       console.log("YES");
-  //       setToggle(false);
-  //     }
-  //   }
+  useEffect(() => {
+    function handleMouseEvent(e: MouseEvent) {
+      if (!focusRef.current?.contains(e.target as Node)) {
+        setToggle(false);
+        // console.log(e.target);
+      } else {
+      }
+    }
 
-  //   window.addEventListener("mousedown", handleMouseEvent);
-  //   return () => {
-  //     focusRef.current = null;
-  //     window.removeEventListener("mousedown", handleMouseEvent);
-  //   };
-  // }, []);
+    window.addEventListener("mousedown", handleMouseEvent);
+    return () => {
+      // focusRef.current = null;
+      window.removeEventListener("mousedown", handleMouseEvent);
+    };
+  }, []);
 
   return (
     <AnimatePresence>
@@ -85,7 +79,7 @@ export function SideBarBody({
           x: !toggle ? `-100%` : `0%`,
           transition: { damping: 30, stiffness: 300, type: "spring" },
         }}
-        className={`flex flex-col justify-between w-64 z-[9999] h-screen fixed top-0 left-0 ${className}`}
+        className={`flex  flex-col justify-between w-64 z-[9999] h-screen fixed top-0 left-0 ${className}`}
       >
         {children}
       </motion.div>
@@ -115,20 +109,26 @@ export function SidebarToggler() {
   const { setToggle, toggle } = useSideBar();
   const [visibility, setVisibility] = useState<boolean>(false);
 
+  const condition = toggle && visibility ? 1 : !toggle ? 1 : 0;
+
   return (
     <motion.div
       onMouseOver={() => setVisibility(true)}
       onMouseLeave={() => setVisibility(false)}
-      animate={{ opacity: visibility || toggle ? 1 : 0 }}
-      className="fixed top-3 left-3 hover-icon z-[99999]"
+      animate={{ opacity: condition }}
+      className="fixed top-2.5 left-2.5 hover-icon z-[99999]"
     >
+      {/* {toggle ? "TOGGLE" : "NOT TOGGLE"} */}
       <FiSidebar
         className="z-100"
-        size={15}
+        size={18}
         onClick={() => {
           setToggle((prev) => !prev);
         }}
       />
+      {/* <span className="fixed top-0 left-0">
+        {visibility ? "visibility" : "NOT visibility"}
+      </span> */}
     </motion.div>
   );
 }
