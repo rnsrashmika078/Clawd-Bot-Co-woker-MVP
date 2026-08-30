@@ -1,6 +1,4 @@
-export function isPresentBefore(beforeLast: string, code: string) {
-  return beforeLast?.startsWith(code);
-}
+
 export const convertDateTime = (date: string) => {
   if (typeof window === "undefined") return;
   // hydration error can be occrred

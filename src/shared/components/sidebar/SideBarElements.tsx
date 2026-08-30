@@ -1,3 +1,4 @@
+import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   createContext,
@@ -54,22 +55,24 @@ export function SideBarBody({
 }) {
   const { toggle, setToggle } = useSideBar();
   const focusRef = useRef<HTMLDivElement | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    function handleMouseEvent(e: MouseEvent) {
-      if (!focusRef.current?.contains(e.target as Node)) {
-        setToggle(false);
-        // console.log(e.target);
-      } else {
+    if (isMobile) {
+      function handleMouseEvent(e: MouseEvent) {
+        if (!focusRef.current?.contains(e.target as Node)) {
+          setToggle(false);
+          // console.log(e.target);
+        }
       }
-    }
 
-    window.addEventListener("mousedown", handleMouseEvent);
-    return () => {
-      // focusRef.current = null;
-      window.removeEventListener("mousedown", handleMouseEvent);
-    };
-  }, []);
+      window.addEventListener("mousedown", handleMouseEvent);
+      return () => {
+        // focusRef.current = null;
+        window.removeEventListener("mousedown", handleMouseEvent);
+      };
+    }
+  }, [isMobile, setToggle]);
 
   return (
     <AnimatePresence>
@@ -90,7 +93,7 @@ export function SideBarGroup({
   children,
   className,
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
 }) {
   return <div className={className}>{children}</div>;
@@ -107,15 +110,10 @@ export function SideBarFooter({ children }: { children: ReactNode }) {
 
 export function SidebarToggler() {
   const { setToggle, toggle } = useSideBar();
-  const [visibility, setVisibility] = useState<boolean>(false);
-
-  const condition = toggle && visibility ? 1 : !toggle ? 1 : 0;
 
   return (
     <motion.div
-      onMouseOver={() => setVisibility(true)}
-      onMouseLeave={() => setVisibility(false)}
-      animate={{ opacity: condition }}
+      animate={{ opacity: toggle ? 0 : 1 }}
       className="fixed top-2.5 left-2.5 hover-icon z-[99999]"
     >
       {/* {toggle ? "TOGGLE" : "NOT TOGGLE"} */}
@@ -123,6 +121,7 @@ export function SidebarToggler() {
         className="z-100"
         size={18}
         onClick={() => {
+          if (toggle) return;
           setToggle((prev) => !prev);
         }}
       />

@@ -25,6 +25,11 @@ export type UsageMetadata = {
   output_tokens: number;
   total_tokens: number;
 };
+export type Thread = {
+  thread_id: string;
+  thread_name?: string;
+  thread_status?: "temp" | "confirm";
+};
 export type ResponseMeta<T = unknown> = {
   model_provider: string;
   model_name: string;

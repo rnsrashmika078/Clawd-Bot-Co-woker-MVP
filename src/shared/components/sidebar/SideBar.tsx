@@ -13,9 +13,19 @@ import {
 import Logo from "../Logo";
 import { User } from "../User";
 import { SettingsContextProvider } from "@/shared/context/SettingsContext";
+import { v4 as uuid } from "uuid";
+import { useEffect, useState } from "react";
+import { getThreads } from "@/features/chat/services/threadList";
+import ThreadList from "./ThreadList";
 
+type LOCALTHREAD = {
+  thread_id: string;
+  thread_name: string;
+  id?: number;
+};
 const Sidebar = () => {
-  const { thread, setThread } = useAppContext();
+  const { thread, setThread, setThreads, threads } = useAppContext();
+  const [t, setT] = useState<LOCALTHREAD[]>([]);
   const items = [
     {
       name: "New chat",
@@ -34,26 +44,24 @@ const Sidebar = () => {
       icon: HiOutlineDocumentDuplicate,
     },
   ];
-  const threads = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "18",
-  ];
+
+  useEffect(() => {
+    const storeThread = async () => {
+      const allThreads = await getThreads();
+      setThreads(allThreads);
+    };
+    storeThread();
+  }, []);
+
+  const handleAction = (item: string) => {
+    if (item.startsWith("New chat")) {
+      const threadId = uuid();
+      setThread(threadId);
+    }
+  };
+
+  console.log("THREADS", threads);
+
   return (
     <SideBarLayout>
       <SideBarBody className="bg-accent text-xs">
@@ -66,6 +74,7 @@ const Sidebar = () => {
               return (
                 <div
                   key={i.name}
+                  onClick={() => handleAction(i.name)}
                   className="flex hover:bg-background gap-2 items-center justify-start hover:bg-hover p-2 rounded-md"
                 >
                   <Icon size={15} />
@@ -75,21 +84,7 @@ const Sidebar = () => {
             })}
           </SideBarGroup>
           <SideBarGroup className="h-[calc(100%-5rem)] overflow-y-auto custom-scrollbar-y p-2">
-            {threads.map((t) => (
-              <div
-                onClick={() => {
-                  if (typeof window === "undefined") return;
-                  window.location.hash = t;
-                  setThread(t);
-                }}
-                className={`  flex-col px-4 mt-1 cursor-pointer transition-all py-2 hover:bg-background select-none rounded-2xl ${
-                  thread === t ? "bg-background" : ""
-                } w-full`}
-                key={t}
-              >
-                {t}
-              </div>
-            ))}
+            <ThreadList threads={threads} />
           </SideBarGroup>
         </SideBarHeader>
         <SideBarFooter>

@@ -1,7 +1,5 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable react-hooks/refs */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+
+import { memo, useEffect, useRef,  } from "react";
 import {
   isHumanMessage,
   extractTextContent,
@@ -17,7 +15,6 @@ import {
 import Accordion from "@/shared/components/Accordion";
 import { Bubble, Message } from "@/shared/components/Message";
 import Markdown from "@/shared/components/Markdown";
-import { isCurrentMessage } from "../helper/render";
 import WriterMessage from "@/shared/components/WriterMessage";
 import ModelEvaluation from "@/shared/components/ModelEvaluation";
 import ToolResult from "@/shared/components/ToolResult";
@@ -88,11 +85,11 @@ export const Conversation = memo(
                   </div>
                   {!isTool && (
                     <Bubble variant={isHuman ? "human" : "ai"}>
-                      {isCurrentMessage(status, msg.customId, isLoading) ? (
+                      {/* {isCurrentMessage(status, msg.customId, isLoading) ? (
                         <span>{content}</span>
-                      ) : (
+                      ) : ( */}
                         <Markdown content={content} isHuman={isHuman} />
-                      )}
+                      {/* )} */}
                     </Bubble>
                   )}
                 </div>

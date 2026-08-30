@@ -9,10 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  FetchStreamTransport,
-  useStream,
-} from "@langchain/langgraph-sdk/react";
+import { useStream } from "@langchain/langgraph-sdk/react";
 
 import { MdSwitchRight } from "react-icons/md";
 import { Message as LCMessage } from "@langchain/core/messages";
@@ -28,42 +25,41 @@ import {
   ResponseMeta,
   StreamMessageStatus,
 } from "@/features/chat/types/chat.types";
-import { deleteChats } from "@/shared/lib/api";
 import ErrorCard from "@/shared/components/cards/ErrorCard";
 import { InputArea } from "@/shared/components/InputArea";
-import { loadThreadHistory } from "../services/chatHistory";
 import { v4 as uuid } from "uuid";
+import { transport } from "../helper/langchainTransport";
+import { addThread } from "../services/threadList";
+import { deleteChats, loadThreadHistory } from "../services/chatOperation";
+import { triggerChatNotification } from "@/shared/services/ipc";
+
 const Preview = lazy(() => import("@/features/preview/components/Preview"));
 
 const Chat = memo(() => {
   const [preview, setPreview] = useState<boolean>(false);
-
   const currentMessageRef = useRef<string | null>("");
   const [currentMessageId, setCurrentMessageId] = useState<string>("");
   const [status, setStatus] = useState<StreamMessageStatus>(null);
   const [messages, setMessages] = useState<LCMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const { thread } = useAppContext();
+  const [tokenCount, setTokenCount] = useState(0);
 
-  const transport = useMemo(() => {
-    return new FetchStreamTransport({
-      apiUrl: "http://localhost:8000/api/stream",
-    });
-  }, []);
+  const { thread, threads, setThreads } = useAppContext();
 
   const [writerMessage, setWriterMessage] =
     useState<CustomWriterMessage | null>(null);
 
-  const handleCustomWriterMessage = (data: any) => {
+  const handleCustomWriterMessage = useCallback((data: any) => {
     setWriterMessage({
       message: data.message,
       messageId: currentMessageRef.current!,
     });
-  };
+  }, []);
 
   const stream = useStream({
     transport,
+    throttle: 10,
     onMetadataEvent(data) {},
     onCustomEvent: handleCustomWriterMessage,
     threadId: thread,
@@ -81,6 +77,35 @@ const Chat = memo(() => {
           messageStatus: "loading",
         });
 
+        setThreads((prev) =>
+          prev.map((t) =>
+            t.thread_id === thread ? { ...t, thread_status: "confirm" } : t,
+          ),
+        );
+
+        if (stream.messages.length < 1) {
+          triggerChatNotification({
+            title: "New Chat",
+            body: "You have new chat created!",
+          });
+          const saveThread = async () => {
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            const newThread = await addThread({
+              thread_id: thread,
+              thread_name: "HI",
+              thread_status: "confirm",
+            });
+            setThreads((prev) => [
+              ...prev,
+
+              {
+                thread_id: newThread.thread_id,
+                thread_name: newThread.thread_name,
+              },
+            ]);
+          };
+          saveThread();
+        }
         await stream.submit({
           messages: [
             { type: "human", content: data.input },
@@ -103,7 +128,7 @@ const Chat = memo(() => {
         setError(errorMessage);
       }
     },
-    [file, stream, thread],
+    [file, setThreads, stream, thread],
   );
 
   useEffect(() => {
@@ -142,13 +167,6 @@ const Chat = memo(() => {
     return [...messages, ...modifiedNewStreamMessages] as ExtendedMessage[];
   }, [currentMessageId, messages, stream.messages]);
 
-  // const allMessages = useMemo(() => {
-  //   // const lastMessage = stream.messages.at(-1) as LCMessage;
-  //   return stream.messages;
-  // }, [stream.messages]);
-
-  console.log("all message", allMessages);
-  console.log("Stream all message", stream.messages.length);
   // tailwind dynamic styles
   const convPreviewStyle = preview
     ? "flex-1 hidden md:block w-1/2 m-auto"
@@ -158,8 +176,6 @@ const Chat = memo(() => {
     allMessages && allMessages.length > 0
       ? "justify-between"
       : "justify-center";
-
-  const [tokenCount, setTokenCount] = useState(0);
 
   useEffect(() => {
     if (!allMessages) return;
@@ -175,6 +191,10 @@ const Chat = memo(() => {
       );
     }
   }, [allMessages]);
+
+  // useEffect(() => {
+  //
+  // }, [allMessages]);
   return (
     <div className="flex w-full h-full scrollbar p-2">
       <div className="fixed top-0 left-1/2 -translate-x-1/2 p-2 z-50">
@@ -190,15 +210,6 @@ const Chat = memo(() => {
             <MdSwitchRight
               className={`transition-all duration-300 ${preview ? "rotate-180" : "rotate-0"}`}
             />
-          </Button>
-          <Button
-            size={"sm"}
-            // className={`md:hidden block`}
-            onClick={async () => {
-              await deleteChats();
-            }}
-          >
-            DELETE
           </Button>
         </div>
       </div>
