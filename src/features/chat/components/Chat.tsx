@@ -30,7 +30,7 @@ import { InputArea } from "@/shared/components/InputArea";
 import { v4 as uuid } from "uuid";
 import { transport } from "../helper/langchainTransport";
 import { addThread } from "../services/threadList";
-import { deleteChats, loadThreadHistory } from "../services/chatOperation";
+import { loadThreadHistory } from "../services/chatOperation";
 import { triggerChatNotification } from "@/shared/services/ipc";
 
 const Preview = lazy(() => import("@/features/preview/components/Preview"));
@@ -45,22 +45,45 @@ const Chat = memo(() => {
   const [file, setFile] = useState<File | null>(null);
   const [tokenCount, setTokenCount] = useState(0);
 
-  const { thread, threads, setThreads } = useAppContext();
+  const { thread, setThreads } = useAppContext();
 
-  const [writerMessage, setWriterMessage] =
-    useState<CustomWriterMessage | null>(null);
+  const [writerMessage, setWriterMessage] = useState<any | null>(null);
 
-  const handleCustomWriterMessage = useCallback((data: any) => {
-    setWriterMessage({
-      message: data.message,
-      messageId: currentMessageRef.current!,
-    });
-  }, []);
+  const handleCustomWriterMessage = useCallback(
+    async (data: any) => {
+      if (data.title) {
+        triggerChatNotification({
+          title: data.title,
+          body: "You have new chat created!",
+        });
+        // await new Promise((resolve) => setTimeout(resolve, 5000));
+        const newThread = await addThread({
+          thread_id: thread,
+          thread_name: data.title,
+          thread_status: "confirm",
+        });
+        setThreads((prev) => [
+          ...prev,
+
+          {
+            thread_id: newThread.thread_id,
+            thread_name: newThread.thread_name,
+          },
+        ]);
+        return;
+      }
+      setWriterMessage({
+        message: data.message,
+        messageId: currentMessageRef.current!,
+      });
+    },
+    [setThreads, thread],
+  );
 
   const stream = useStream({
     transport,
     throttle: 10,
-    onMetadataEvent(data) {},
+    // onMetadataEvent(data) {},
     onCustomEvent: handleCustomWriterMessage,
     threadId: thread,
     onError: (err: unknown) => setError(JSON.stringify(err)),
@@ -83,29 +106,6 @@ const Chat = memo(() => {
           ),
         );
 
-        if (stream.messages.length < 1) {
-          triggerChatNotification({
-            title: "New Chat",
-            body: "You have new chat created!",
-          });
-          const saveThread = async () => {
-            await new Promise((resolve) => setTimeout(resolve, 5000));
-            const newThread = await addThread({
-              thread_id: thread,
-              thread_name: "HI",
-              thread_status: "confirm",
-            });
-            setThreads((prev) => [
-              ...prev,
-
-              {
-                thread_id: newThread.thread_id,
-                thread_name: newThread.thread_name,
-              },
-            ]);
-          };
-          saveThread();
-        }
         await stream.submit({
           messages: [
             { type: "human", content: data.input },
@@ -195,6 +195,8 @@ const Chat = memo(() => {
   // useEffect(() => {
   //
   // }, [allMessages]);
+
+  console.log("CHAT MESSAGES", allMessages);
   return (
     <div className="flex w-full h-full scrollbar p-2">
       <div className="fixed top-0 left-1/2 -translate-x-1/2 p-2 z-50">

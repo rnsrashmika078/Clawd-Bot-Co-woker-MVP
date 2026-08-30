@@ -1,15 +1,14 @@
+import { api } from "@/shared/services/api";
 import { Thread } from "../types/chat.types";
 
 export async function addThread(thread: Thread) {
-  const response = await fetch(`http://localhost:8000/api/threads/add_thread`, {
+  const response = await api({
+    route: "/threads/add_thread",
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+    body: {
       thread_id: thread.thread_id,
       thread_name: thread.thread_name,
-    }),
+    },
   });
   if (response.ok) {
     const state = await response.json();
@@ -17,19 +16,9 @@ export async function addThread(thread: Thread) {
   }
 }
 export async function getThreads() {
-  const response = await fetch(
-    `http://localhost:8000/api/threads/get_threads`,
-    {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json",
-      },
-    },
-  );
+  const response = await api({ route: "/threads/get_threads" });
   if (response.ok) {
     const state = await response.json();
-    console.log(state);
-
     return state;
   }
 }

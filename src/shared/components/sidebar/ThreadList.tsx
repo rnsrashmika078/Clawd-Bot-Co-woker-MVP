@@ -14,7 +14,6 @@ const ThreadList = memo(({ threads }: ThreadProps) => {
     threads &&
     threads.map((t) => {
       if (t.thread_status === "temp") {
-        // setThread(t.threadId);
         return;
       }
       return (
@@ -27,7 +26,7 @@ const ThreadList = memo(({ threads }: ThreadProps) => {
           } w-full`}
           key={t.thread_id}
         >
-          {t.thread_name}
+          {(t.thread_name as string).trim().replace(/^"+|"+$/g, '').trim()}
           <MdOutlineDelete
             className="hover:scale-110 transition-all"
             onClick={async () => {

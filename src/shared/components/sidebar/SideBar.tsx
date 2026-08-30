@@ -14,18 +14,12 @@ import Logo from "../Logo";
 import { User } from "../User";
 import { SettingsContextProvider } from "@/shared/context/SettingsContext";
 import { v4 as uuid } from "uuid";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getThreads } from "@/features/chat/services/threadList";
 import ThreadList from "./ThreadList";
 
-type LOCALTHREAD = {
-  thread_id: string;
-  thread_name: string;
-  id?: number;
-};
 const Sidebar = () => {
-  const { thread, setThread, setThreads, threads } = useAppContext();
-  const [t, setT] = useState<LOCALTHREAD[]>([]);
+  const { setThread, setThreads, threads } = useAppContext();
   const items = [
     {
       name: "New chat",
@@ -60,12 +54,9 @@ const Sidebar = () => {
     }
   };
 
-  console.log("THREADS", threads);
-
   return (
     <SideBarLayout>
       <SideBarBody className="bg-accent text-xs">
-        {/* <SideBarContent></SideBarContent> */}
         <SideBarHeader>
           <Logo />
           <SideBarGroup className="px-2">
