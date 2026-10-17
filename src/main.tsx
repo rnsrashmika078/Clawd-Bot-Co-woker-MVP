@@ -8,14 +8,14 @@ import App from "./app.tsx";
 
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <ReduxProvider>
       <AppContextProvider>
         <App  />
         <Theme />
       </AppContextProvider>
     </ReduxProvider>
-  </React.StrictMode>,
+  // </React.StrictMode>,
 );
 
 // Use contextBridge

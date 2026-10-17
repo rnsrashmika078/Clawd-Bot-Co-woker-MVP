@@ -1,252 +1,197 @@
+import { useStream } from "@langchain/langgraph-sdk/react";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
-import {
-  lazy,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useStream } from "@langchain/langgraph-sdk/react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 
-import { MdSwitchRight } from "react-icons/md";
-import { Message as LCMessage } from "@langchain/core/messages";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Conversation } from "./Conversation";
-import { useAppContext } from "@/shared/context/AppContext";
 import {
-  CustomWriterMessage,
-  ExtendedMessage,
-  File,
-  FormField,
-  ResponseMeta,
-  StreamMessageStatus,
+	ExtendedMessage,
+	File,
+	FormField,
+	StreamMessageStatus,
 } from "@/features/chat/types/chat.types";
-import ErrorCard from "@/shared/components/cards/ErrorCard";
 import { InputArea } from "@/shared/components/InputArea";
+import ErrorCard from "@/shared/components/cards/ErrorCard";
+import { useAppContext } from "@/shared/context/AppContext";
+import { triggerChatNotification } from "@/shared/services/ipc";
+import type { Message as LCMessage } from "@langchain/core/messages";
 import { v4 as uuid } from "uuid";
 import { transport } from "../helper/langchainTransport";
-import { addThread } from "../services/threadList";
+import { useStableMessages } from "../hooks/useStableMessages";
 import { loadThreadHistory } from "../services/chatOperation";
-import { triggerChatNotification } from "@/shared/services/ipc";
-
-const Preview = lazy(() => import("@/features/preview/components/Preview"));
+import { addThread } from "../services/threadList";
+import { Conversation } from "./Conversation";
 
 const Chat = memo(() => {
-  const [preview, setPreview] = useState<boolean>(false);
-  const currentMessageRef = useRef<string | null>("");
-  const [currentMessageId, setCurrentMessageId] = useState<string>("");
-  const [status, setStatus] = useState<StreamMessageStatus>(null);
-  const [messages, setMessages] = useState<LCMessage[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [tokenCount, setTokenCount] = useState(0);
+	const currentMessageRef = useRef<string | null>("");
+	const [currentMessageId, setCurrentMessageId] = useState<string>("");
+	const [status, setStatus] = useState<StreamMessageStatus>(null);
+	const [messages, setMessages] = useState<LCMessage[]>([]);
+	const [error, setError] = useState<string | null>(null);
+	const [file, setFile] = useState<File | null>(null);
 
-  const { thread, setThreads } = useAppContext();
+	const { thread, setThreads } = useAppContext();
 
-  const [writerMessage, setWriterMessage] = useState<any | null>(null);
+	const [writerMessage, setWriterMessage] = useState<any | null>(null);
 
-  const handleCustomWriterMessage = useCallback(
-    async (data: any) => {
-      if (data.title) {
-        triggerChatNotification({
-          title: data.title,
-          body: "You have new chat created!",
-        });
-        // await new Promise((resolve) => setTimeout(resolve, 5000));
-        const newThread = await addThread({
-          thread_id: thread,
-          thread_name: data.title,
-          thread_status: "confirm",
-        });
-        setThreads((prev) => [
-          ...prev,
+	const handleCustomWriterMessage = useCallback(
+		async (data: any) => {
+			if (data.title) {
+				triggerChatNotification({
+					title: data.title,
+					body: "You have new chat created!",
+				});
+				// await new Promise((resolve) => setTimeout(resolve, 5000));
+				const newThread = await addThread({
+					thread_id: thread,
+					thread_name: data.title,
+					thread_status: "confirm",
+				});
+				setThreads((prev) => [
+					...prev,
 
-          {
-            thread_id: newThread.thread_id,
-            thread_name: newThread.thread_name,
-          },
-        ]);
-        return;
-      }
-      setWriterMessage({
-        message: data.message,
-        messageId: currentMessageRef.current!,
-      });
-    },
-    [setThreads, thread],
-  );
+					{
+						thread_id: newThread.thread_id,
+						thread_name: newThread.thread_name,
+					},
+				]);
+				return;
+			}
+			setWriterMessage({
+				message: data.message,
+				messageId: currentMessageRef.current!,
+			});
+		},
+		[setThreads, thread],
+	);
 
-  const stream = useStream({
-    transport,
-    throttle: 10,
-    // onMetadataEvent(data) {},
-    onCustomEvent: handleCustomWriterMessage,
-    threadId: thread,
-    onError: (err: unknown) => setError(JSON.stringify(err)),
-  });
+	const stream = useStream({
+		transport,
+		throttle: 10,
+		onCustomEvent: handleCustomWriterMessage,
+		threadId: thread,
+		onError: (err: unknown) => setError(JSON.stringify(err)),
+	});
 
-  const onSubmit = useCallback(
-    async (data: FormField) => {
-      try {
-        const id = uuid();
-        currentMessageRef.current = id;
-        setCurrentMessageId(id);
-        setStatus({
-          messageId: id,
-          messageStatus: "loading",
-        });
+	const streamRef = useRef(stream);
+	useEffect(() => {
+		streamRef.current = stream;
+	}, [stream]);
 
-        setThreads((prev) =>
-          prev.map((t) =>
-            t.thread_id === thread ? { ...t, thread_status: "confirm" } : t,
-          ),
-        );
+	const onSubmit = useCallback(
+		async (data: FormField) => {
+			try {
+				const id = uuid();
+				currentMessageRef.current = id;
+				setCurrentMessageId(id);
+				setStatus({
+					messageId: id,
+					messageStatus: "loading",
+				});
 
-        await stream.submit({
-          messages: [
-            { type: "human", content: data.input },
-            ...(file
-              ? [
-                  {
-                    type: "image",
-                    content: file?.url ?? "",
-                  },
-                ]
-              : []),
-          ],
-          threadId: thread,
-        });
+				setThreads((prev) =>
+					prev.map((t) =>
+						t.thread_id === thread ? { ...t, thread_status: "confirm" } : t,
+					),
+				);
 
-        if (file) setFile(null);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "failed to send a message";
-        setError(errorMessage);
-      }
-    },
-    [file, setThreads, stream, thread],
-  );
+				await streamRef.current.submit({
+					messages: [
+						{ type: "human", content: data.input },
+						...(file
+							? [
+									{
+										type: "image",
+										content: file?.url ?? "",
+									},
+								]
+							: []),
+					],
+					threadId: thread,
+				});
 
-  useEffect(() => {
-    if (!thread) {
-      setMessages([]);
-      setError(null);
-      return;
-    }
-    async function threadHistory() {
-      try {
-        const history = await loadThreadHistory(thread);
-        if (history) {
-          setMessages(history);
-        }
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "failed to load message history",
-        );
-      }
-    }
-    threadHistory();
-  }, [thread]);
+				if (file) setFile(null);
+			} catch (err) {
+				const errorMessage =
+					err instanceof Error ? err.message : "failed to send a message";
+				setError(errorMessage);
+			}
+		},
+		[file, setThreads, thread],
+	);
 
-  const allMessages = useMemo(() => {
-    const existingIds = new Set(messages.map((msg) => msg.id)); // get all exisiting ids
-    const newStreamMessages = stream.messages.filter(
-      (m) => !existingIds.has(m.id),
-    );
+	const handleSubmit = useCallback(
+		(data: FormField) => {
+			onSubmit(data);
+			setError(null);
+		},
+		[onSubmit],
+	);
 
-    const lastMessageIndex = newStreamMessages.length - 1;
-    const modifiedNewStreamMessages = newStreamMessages.map((m, index) =>
-      index === lastMessageIndex && m.type === "ai"
-        ? { ...m, customId: currentMessageId }
-        : m,
-    );
-    return [...messages, ...modifiedNewStreamMessages] as ExtendedMessage[];
-  }, [currentMessageId, messages, stream.messages]);
+	const handleStop = useCallback(() => {
+		streamRef.current.stop();
+	}, []);
 
-  // tailwind dynamic styles
-  const convPreviewStyle = preview
-    ? "flex-1 hidden md:block w-1/2 m-auto"
-    : "w-full md:w-1/2 m-auto";
+	useEffect(() => {
+		setCurrentMessageId("");
+		if (!thread) {
+			setMessages([]);
+			setError(null);
+			return;
+		}
+		async function threadHistory() {
+			try {
+				const history = await loadThreadHistory(thread);
+				if (history) {
+					setMessages(history);
+				}
+			} catch (err) {
+				setError(
+					err instanceof Error ? err.message : "failed to load message history",
+				);
+			}
+		}
+		threadHistory();
+	}, [thread]);
 
-  const flexing =
-    allMessages && allMessages.length > 0
-      ? "justify-between"
-      : "justify-center";
+	const allMessages: ExtendedMessage[] = useStableMessages(
+		messages,
+		stream.messages,
+		currentMessageId,
+	);
 
-  useEffect(() => {
-    if (!allMessages) return;
-    const lastMessage = allMessages[allMessages.length - 1];
+	const flexing =
+		allMessages && allMessages.length > 0
+			? "justify-between"
+			: "justify-center";
 
-    if ((lastMessage?.response_metadata as ResponseMeta)?.done) {
-      setTokenCount(
-        allMessages?.reduce(
-          (acc, item: ExtendedMessage) =>
-            (acc + (item?.usage_metadata?.total_tokens ?? 0)) as number,
-          0,
-        ),
-      );
-    }
-  }, [allMessages]);
+	const tokenCount = allMessages.reduce(
+		(acc, item: ExtendedMessage) =>
+			acc + (item?.usage_metadata?.total_tokens ?? 0),
+		0,
+	);
 
-  // useEffect(() => {
-  //
-  // }, [allMessages]);
-
-  console.log("CHAT MESSAGES", allMessages);
-  return (
-    <div className="flex w-full h-full scrollbar p-2">
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 p-2 z-50">
-        <span className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></span>
-        <div className="flex gap-2">
-          <Button
-            size={"sm"}
-            // className={`md:hidden block`}
-            onClick={() => {
-              setPreview((prev) => !prev);
-            }}
-          >
-            <MdSwitchRight
-              className={`transition-all duration-300 ${preview ? "rotate-180" : "rotate-0"}`}
-            />
-          </Button>
-        </div>
-      </div>
-      {preview && (
-        <div className="flex-1 md:flex-2">
-          <Preview />
-        </div>
-      )}
-      <AnimatePresence>
-        <motion.div
-          className={`${convPreviewStyle} flex relative h-full flex-col ${flexing} `}
-        >
-          <Conversation
-            writerMessage={writerMessage}
-            messages={allMessages}
-            status={status}
-            isLoading={stream.isLoading}
-          />
-          <ErrorCard error={error!} />
-          <InputArea
-            tokenCount={tokenCount}
-            isLoading={stream.isLoading}
-            onSubmit={(data) => {
-              onSubmit(data);
-              setError(null);
-            }}
-            setFile={setFile}
-            file={file}
-            stop={stream.stop}
-            status={status?.messageStatus ?? "idle"}
-          />
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
+	return (
+		<div className="flex h-full w-full overflow-hidden p-2 custom-scrollbar-y">
+			<div className={`relative flex h-full w-full flex-col ${flexing}`}>
+				<Conversation
+					writerMessage={writerMessage}
+					messages={allMessages}
+					status={status}
+					isLoading={stream.isLoading}
+				/>
+				<ErrorCard error={error!} />
+				<InputArea
+					tokenCount={tokenCount}
+					isLoading={stream.isLoading}
+					onSubmit={handleSubmit}
+					setFile={setFile}
+					file={file}
+					stop={handleStop}
+					status={status?.messageStatus ?? "idle"}
+				/>
+			</div>
+		</div>
+	);
 });
 Chat.displayName = "Chat";
 

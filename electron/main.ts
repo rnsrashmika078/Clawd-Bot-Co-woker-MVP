@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { notificationHandler } from "./services/notification";
+import { fileHandler } from "./services/file";
 createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -73,4 +74,5 @@ app.whenReady().then(() => {
   app.setAppUserModelId("Co-Worker");
 
   notificationHandler();
+  fileHandler();
 });

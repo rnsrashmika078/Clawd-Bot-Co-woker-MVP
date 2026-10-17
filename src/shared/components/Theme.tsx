@@ -1,5 +1,4 @@
-"use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Moon } from "lucide-react";
 import { Sun } from "lucide-react";
 // import { ToastContainer } from "react-toastify";

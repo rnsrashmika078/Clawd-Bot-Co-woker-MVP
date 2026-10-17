@@ -74,7 +74,7 @@ const Sidebar = () => {
               );
             })}
           </SideBarGroup>
-          <SideBarGroup className="h-[calc(100%-5rem)] overflow-y-auto custom-scrollbar-y p-2">
+          <SideBarGroup className="h-[calc(100%-5rem)] overflow-y-auto custom-scrollbar-y">
             <ThreadList threads={threads} />
           </SideBarGroup>
         </SideBarHeader>

@@ -57,22 +57,22 @@ export function SideBarBody({
   const focusRef = useRef<HTMLDivElement | null>(null);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    if (isMobile) {
-      function handleMouseEvent(e: MouseEvent) {
-        if (!focusRef.current?.contains(e.target as Node)) {
-          setToggle(false);
-          // console.log(e.target);
-        }
-      }
+  // useEffect(() => {
+  //   if (isMobile) {
+  //     function handleMouseEvent(e: MouseEvent) {
+  //       if (!focusRef.current?.contains(e.target as Node)) {
+  //         setToggle(false);
+  //         // console.log(e.target);
+  //       }
+  //     }
 
-      window.addEventListener("mousedown", handleMouseEvent);
-      return () => {
-        // focusRef.current = null;
-        window.removeEventListener("mousedown", handleMouseEvent);
-      };
-    }
-  }, [isMobile, setToggle]);
+  //     window.addEventListener("mousedown", handleMouseEvent);
+  //     return () => {
+  //       // focusRef.current = null;
+  //       window.removeEventListener("mousedown", handleMouseEvent);
+  //     };
+  //   }
+  // }, [isMobile, setToggle]);
 
   return (
     <AnimatePresence>
@@ -112,22 +112,20 @@ export function SidebarToggler() {
   const { setToggle, toggle } = useSideBar();
 
   return (
-    <motion.div
-      animate={{ opacity: toggle ? 0 : 1 }}
-      className="fixed top-2.5 left-2.5 hover-icon z-[99999]"
+    <motion.button
+      type="button"
+      aria-label={toggle ? "Close sidebar" : "Open sidebar"}
+      title={toggle ? "Close sidebar" : "Open sidebar"}
+      onClick={() => setToggle((prev) => !prev)}
+      initial={false}
+      animate={{ x: toggle ? 264 : 8 }}
+      transition={{ damping: 30, stiffness: 300, type: "spring" }}
+      className="hover-icon fixed top-2 left-0 z-[10000] cursor-pointer text-foreground"
     >
-      {/* {toggle ? "TOGGLE" : "NOT TOGGLE"} */}
       <FiSidebar
-        className="z-100"
+        className={`transition-transform duration-300 ${toggle ? "" : "rotate-180"}`}
         size={18}
-        onClick={() => {
-          if (toggle) return;
-          setToggle((prev) => !prev);
-        }}
       />
-      {/* <span className="fixed top-0 left-0">
-        {visibility ? "visibility" : "NOT visibility"}
-      </span> */}
-    </motion.div>
+    </motion.button>
   );
 }
