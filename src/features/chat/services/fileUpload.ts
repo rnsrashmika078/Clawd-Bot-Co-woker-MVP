@@ -1,9 +1,7 @@
-
-
 const Name = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME!;
 const Preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-export const uploadImage = async (
+export const uploadFile = async (
   file: File | null,
   userId: number | undefined,
 ) => {
@@ -27,5 +25,6 @@ export const uploadImage = async (
   }
 
   const data = await response.json();
+  console.log("upload file data", data);
   return { secure_url: data.secure_url, format: data.format };
 };

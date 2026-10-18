@@ -10,11 +10,11 @@ import { IoMdSend } from "react-icons/io";
 import { IoIosAttach } from "react-icons/io";
 import { MdStop } from "react-icons/md";
 import { File, FormField, Status } from "@/features/chat/types/chat.types";
-import { uploadImage } from "@/features/chat/services/fileUpload";
+import { uploadFile } from "@/features/chat/services/fileUpload";
 import Loader from "@/shared/components/Loader";
 import ImageSkeleton from "./Skeletons";
 import Preview from "@/shared/components/ImagePreview";
-import { uploadFile } from "@/features/chat/services/fileUploadFast";
+import { ModelSelect } from "@/shared/components/ModelSelect";
 
 interface InputAreaProps {
   onSubmit: (data: FormField) => void;
@@ -24,6 +24,8 @@ interface InputAreaProps {
   isLoading: boolean;
   tokenCount: number;
   stop: () => void;
+  model: string;
+  setModel: React.Dispatch<React.SetStateAction<string>>;
 }
 export const InputArea = memo(
   ({
@@ -33,6 +35,8 @@ export const InputArea = memo(
     setFile,
     isLoading,
     stop,
+    model,
+    setModel,
   }: InputAreaProps) => {
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -46,7 +50,7 @@ export const InputArea = memo(
       const rawFile = e.target.files?.[0];
       if (!rawFile) return;
       setLoading(true);
-      const imageData = await uploadImage(rawFile, 1);
+      const imageData = await uploadFile(rawFile, 1);
       setLoading(false);
       setFile({ url: imageData?.secure_url, format: imageData?.format });
     };
@@ -92,13 +96,19 @@ export const InputArea = memo(
                   className="hidden"
                   ref={inputRef}
                 />
+                {/* Model switcher */}
+                <ModelSelect
+                  value={model}
+                  onValueChange={setModel}
+                  className="ml-auto"
+                />
                 {/* Send */}
                 {isLoading ? (
                   <InputGroupButton
                     // disabled={!input}
                     variant="default"
                     size="xs"
-                    className="ml-auto "
+                    className=""
                     onClick={stop}
                   >
                     <MdStop />
@@ -108,7 +118,7 @@ export const InputArea = memo(
                     disabled={!input}
                     variant="default"
                     size="xs"
-                    className="ml-auto "
+                    className=""
                     onClick={() => {
                       onSubmit({ input });
                       setInput("");

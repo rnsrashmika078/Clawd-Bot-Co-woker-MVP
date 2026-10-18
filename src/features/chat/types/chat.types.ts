@@ -13,7 +13,7 @@ export type CustomWriterMessage = {
 };
 export type File = {
   url: string;
-  format?: "image" | "file";
+  format?: "pdf" | "jpg" | "png";
 };
 export type FormField = {
   input: string;

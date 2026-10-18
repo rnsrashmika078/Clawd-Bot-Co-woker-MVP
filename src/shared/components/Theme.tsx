@@ -17,7 +17,7 @@ const Theme = () => {
   }, [isDark]);
   return (
     <div
-      className="fixed bottom-0 right-0 p-5"
+      className="fixed top-0 right-0 p-5"
       onClick={() => setIsDark((prev) => !prev)}
     >
       {/* <ToastContainer
