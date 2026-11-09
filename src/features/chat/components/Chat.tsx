@@ -98,20 +98,14 @@ const Chat = memo(() => {
         await streamRef.current.submit({
           messages: [
             { type: "human", content: data.input },
-            ...(file && file.format !== "pdf"
+            ...(file
               ? [
-                 
                   {
-                    type: "image",
-                    content: file?.url ?? "",
+                    type: file.format === "pdf" ? "file" : "image",
+                    content: file.url ?? "",
                   },
                 ]
-              : [
-                  // {
-                  //   type: "human",
-                  //   content: "Attached file link: " + file?.url,
-                  // },
-                ]),
+              : []),
           ],
           threadId: thread,
           model,
